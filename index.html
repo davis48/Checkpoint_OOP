@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier d'Achat</title>
+     <!-- Lien vers le fichier CSS pour styliser la page -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Conteneur principal pour le panier d'achat -->
+    <div id="cart">
+        <h1>Votre Panier</h1> <!-- Titre du panier d'achat -->
+
+        <!-- Premier article du panier -->
+        <div class="cart-item" data-id="1">
+            <div class="item-info">
+                <!-- Nom du produit -->
+                <p class="item-name">Produit 1</p>
+                <!-- Prix du produit -->
+                <p class="item-price">10.00 €</p>
+            </div>
+            <div class="item-actions">
+                <!-- Bouton pour diminuer la quantité -->
+                <button class="btn-quantity" data-action="decrease">-</button>
+                <!-- Affichage de la quantité actuelle -->
+                <span class="item-quantity">1</span>
+                <!-- Bouton pour augmenter la quantité -->
+                <button class="btn-quantity" data-action="increase">+</button>
+                <!-- Bouton pour supprimer l'article -->
+                <button class="btn-remove">Supprimer</button>
+                <!-- Bouton pour aimer l'article -->
+                <button class="btn-like">❤️</button>
+            </div>
+        </div>
+
+        <!-- Deuxième article du panier -->
+        <div class="cart-item" data-id="2">
+            <div class="item-info">
+                <!-- Nom du produit -->
+                <p class="item-name">Produit 2</p>
+                <!-- Prix du produit -->
+                <p class="item-price">15.00 €</p>
+            </div>
+            <div class="item-actions">
+                <!-- Bouton pour diminuer la quantité -->
+                <button class="btn-quantity" data-action="decrease">-</button>
+                <!-- Affichage de la quantité actuelle -->
+                <span class="item-quantity">1</span>
+                <!-- Bouton pour augmenter la quantité -->
+                <button class="btn-quantity" data-action="increase">+</button>
+                <!-- Bouton pour supprimer l'article -->
+                <button class="btn-remove">Supprimer</button>
+                <!-- Bouton pour aimer l'article -->
+                <button class="btn-like">❤️</button>
+            </div>
+        </div>
+
+        <!-- Affichage du prix total -->
+        <div class="total">
+            <p>Total: <span id="total-price">25.00</span> €</p>
+        </div>
+    </div>
+<script>
+    // Classe pour représenter un produit
+class Product {
+  constructor(id, name, price) {
+    this.id = id;
+    this.name = name;
+    this.price = price;
+  }
+}
+
+// Classe pour représenter un panier d'achat
+class ShoppingCartItem {
+  constructor(product, quantity) {
+    this.product = product;
+    this.quantity = quantity;
+  }
+
+  // Méthode pour calculer le prix total de l'élément
+  getTotalPrice() {
+    return this.product.price * this.quantity;
+  }
+}
+
+// Classe pour représenter le panier d'achat
+class ShoppingCart {
+  constructor() {
+    this.items = [];
+  }
+
+  // Méthode pour obtenir le nombre total d'éléments dans le panier
+  getTotalItems() {
+    return this.items.reduce((total, item) => total + item.quantity, 0);
+  }
+
+    // Méthode pour ajouter un produit au panier
+  addItem(product, quantity) {
+    const existingItem = this.items.find(item => item.product.id === product.id);
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      this.items.push(new ShoppingCartItem(product, quantity));
+    }
+    this.updateTotalPrice();
+  }
+
+    // Méthode pour supprimer un produit du panier
+  removeItem(productId) {
+    this.items = this.items.filter(item => item.product.id !== productId);
+    this.updateTotalPrice();
+  }
+
+  // Méthode pour afficher les éléments du panier
+  displayItems() {
+    return this.items.map(item => `${item.product.name} (x${item.quantity}): $${item.getTotalPrice()}`).join('\n');
+  }
+
+  // Méthode pour mettre à jour le prix total du panier
+  updateTotalPrice() {
+    let totalPrice = 0;
+    this.items.forEach(item => {
+      totalPrice += item.getTotalPrice();
+    });
+    document.getElementById('total-price').textContent = totalPrice.toFixed(2);
+  }
+}
+
+// Création d'une instance de ShoppingCart
+const cart = new ShoppingCart();
+
+// Sélectionner tous les éléments du panier avec la classe 'cart-item'
+document.querySelectorAll('.cart-item').forEach(item => {
+  const id = parseInt(item.getAttribute('data-id'));
+  const name = item.querySelector('.item-name').textContent;
+  const price = parseFloat(item.querySelector('.item-price').textContent.replace(' €', ''));
+  const quantity = parseInt(item.querySelector('.item-quantity').textContent);
+
+// Création d'une instance de Product
+  const product = new Product(id, name, price);
+  cart.addItem(product, quantity);
+
+  // Gérer l'augmentation de la quantité
+  item.querySelector('.btn-quantity[data-action="increase"]').addEventListener('click', () => {
+    cart.addItem(product, 1);
+    item.querySelector('.item-quantity').textContent = cart.items.find(i => i.product.id === id).quantity;
+  });
+
+    // Gérer la diminution de la quantité
+  item.querySelector('.btn-quantity[data-action="decrease"]').addEventListener('click', () => {
+    const cartItem = cart.items.find(i => i.product.id === id);
+    if (cartItem.quantity > 1) {
+      cartItem.quantity--;
+      item.querySelector('.item-quantity').textContent = cartItem.quantity;
+      cart.updateTotalPrice();
+    }
+  });
+
+    // Gérer la suppression de l'article
+  item.querySelector('.btn-remove').addEventListener('click', () => {
+    cart.removeItem(id);
+    item.remove();
+  });
+
+  // Gérer le clic sur le bouton "like"
+  item.querySelector('.btn-like').addEventListener('click', () => {
+    item.querySelector('.btn-like').classList.toggle('liked');
+  });
+});
+
+// Mettre à jour le prix total initial
+cart.updateTotalPrice();
+</script>
+</body>
+</html>
